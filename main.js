@@ -15,8 +15,11 @@ const KM_PER_MILE = 1.609344;
 
 let unit = readSavedUnit();
 let lastRoute = null;
+let profileLabel = "";
 
 const distanceEl = document.getElementById("trip-distance");
+const durationEl = document.getElementById("trip-duration");
+const modeEl = document.getElementById("trip-mode");
 const tripHint = document.getElementById("trip-hint");
 const unitButtons = document.querySelectorAll(".unit-toggle button");
 
@@ -68,6 +71,10 @@ function initializeMap(center, zoom) {
     lastRoute = event.route && event.route.length ? event.route[0] : null;
     renderTrip();
   });
+  directions.on("profile", (event) => {
+    profileLabel = describeProfile(event.profile);
+    renderTrip();
+  });
   directions.on("clear", () => {
     lastRoute = null;
     renderTrip();
@@ -91,10 +98,32 @@ function formatDistance(meters) {
   return `${value.toLocaleString(undefined, { maximumFractionDigits: digits })} ${unit}`;
 }
 
+function describeProfile(profile) {
+  const labels = {
+    "driving-traffic": "driving, with traffic",
+    driving: "driving",
+    walking: "walking",
+    cycling: "cycling",
+  };
+  return labels[String(profile).replace(/^mapbox\//, "")] || "";
+}
+
+function formatDuration(seconds) {
+  const totalMinutes = Math.round(seconds / 60);
+  if (totalMinutes < 1) return "< 1 min";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!hours) return `${minutes} min`;
+  return minutes ? `${hours} h ${minutes} min` : `${hours} h`;
+}
+
 function renderTrip() {
   unitButtons.forEach((btn) => btn.setAttribute("aria-pressed", String(btn.dataset.unit === unit)));
   const hasRoute = Boolean(lastRoute && typeof lastRoute.distance === "number");
   distanceEl.textContent = hasRoute ? formatDistance(lastRoute.distance) : "\u2013";
+  const hasDuration = hasRoute && typeof lastRoute.duration === "number";
+  durationEl.textContent = hasDuration ? formatDuration(lastRoute.duration) : hasRoute ? "Not available" : "\u2013";
+  modeEl.textContent = profileLabel ? ` (${profileLabel})` : "";
   tripHint.hidden = hasRoute;
 }
 
