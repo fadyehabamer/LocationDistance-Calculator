@@ -13,8 +13,12 @@ const USER_ZOOM = 9;
 const UNIT_KEY = "distanceUnit";
 const KM_PER_MILE = 1.609344;
 
-let unit = readSavedUnit();
+const sharedTrip = readSharedTrip();
+const tripPoints = { origin: null, destination: null };
+
+let unit = sharedTrip.unit || readSavedUnit();
 let lastRoute = null;
+let directionsControl = null;
 let profileLabel = "";
 
 const distanceEl = document.getElementById("trip-distance");
@@ -22,12 +26,16 @@ const durationEl = document.getElementById("trip-duration");
 const modeEl = document.getElementById("trip-mode");
 const tripHint = document.getElementById("trip-hint");
 const unitButtons = document.querySelectorAll(".unit-toggle button");
+const shareBtn = document.getElementById("share-btn");
+const shareStatus = document.getElementById("share-status");
 
 // Render the map immediately so the app is usable even if location access is
 // denied, unavailable (e.g. non-HTTPS origin) or the permission prompt is ignored.
 const map = initializeMap(DEFAULT_CENTER, DEFAULT_ZOOM);
 
-if ("geolocation" in navigator) {
+if (sharedTrip.origin || sharedTrip.destination) {
+  map.on("load", loadSharedTrip);
+} else if ("geolocation" in navigator) {
   navigator.geolocation.getCurrentPosition(success, error, { timeout: 10000 });
 } else {
   error();
@@ -75,10 +83,14 @@ function initializeMap(center, zoom) {
     profileLabel = describeProfile(event.profile);
     renderTrip();
   });
-  directions.on("clear", () => {
+  directions.on("origin", (event) => setTripPoint("origin", event.feature));
+  directions.on("destination", (event) => setTripPoint("destination", event.feature));
+  directions.on("clear", (event) => {
     lastRoute = null;
+    if (event && tripPoints[event.type] !== undefined) setTripPoint(event.type, null);
     renderTrip();
   });
+  directionsControl = directions;
 
   return map;
 }
@@ -133,7 +145,90 @@ function setUnit(newUnit) {
     localStorage.setItem(UNIT_KEY, unit);
   } catch (e) {}
   renderTrip();
+  updateShareUrl();
 }
+
+function parseLocation(value) {
+  if (!value || !value.trim()) return null;
+  const match = value.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+  if (match) {
+    const lng = Number(match[1]);
+    const lat = Number(match[2]);
+    return Math.abs(lng) <= 180 && Math.abs(lat) <= 90 ? [lng, lat] : null;
+  }
+  return value.trim().slice(0, 200);
+}
+
+function readSharedTrip() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedUnit = params.get("unit");
+  return {
+    origin: parseLocation(params.get("origin")),
+    destination: parseLocation(params.get("destination")),
+    unit: sharedUnit === "km" || sharedUnit === "mi" ? sharedUnit : null,
+  };
+}
+
+function loadSharedTrip() {
+  const { origin, destination } = sharedTrip;
+  if (origin) directionsControl.setOrigin(origin);
+  if (destination) directionsControl.setDestination(destination);
+  if (Array.isArray(origin) && Array.isArray(destination)) {
+    map.fitBounds([origin, destination], { padding: 80, maxZoom: 14 });
+  } else if (Array.isArray(origin || destination)) {
+    map.jumpTo({ center: origin || destination, zoom: USER_ZOOM });
+  }
+}
+
+function formatPoint(feature) {
+  const coords = feature && feature.geometry && feature.geometry.coordinates;
+  if (!coords || coords.length < 2) return null;
+  return coords.slice(0, 2).map((n) => Number(n.toFixed(5))).join(",");
+}
+
+function setTripPoint(type, feature) {
+  tripPoints[type] = feature ? formatPoint(feature) : null;
+  updateShareUrl();
+}
+
+function updateShareUrl() {
+  const params = new URLSearchParams(window.location.search);
+  ["origin", "destination"].forEach((key) => {
+    if (tripPoints[key]) params.set(key, tripPoints[key]);
+    else params.delete(key);
+  });
+  if (tripPoints.origin || tripPoints.destination) params.set("unit", unit);
+  else params.delete("unit");
+  const query = params.toString().replace(/%2C/gi, ",");
+  history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
+  shareBtn.disabled = !(tripPoints.origin && tripPoints.destination);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  const ok = document.execCommand("copy");
+  area.remove();
+  if (!ok) throw new Error("Copy command was rejected");
+}
+
+shareBtn.addEventListener("click", async () => {
+  try {
+    await copyText(window.location.href);
+    shareStatus.textContent = "Link copied. Anyone who opens it will see this route.";
+  } catch (e) {
+    shareStatus.textContent = `Copy this link: ${window.location.href}`;
+  }
+});
 
 unitButtons.forEach((btn) => btn.addEventListener("click", () => setUnit(btn.dataset.unit)));
 renderTrip();

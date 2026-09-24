@@ -64,6 +64,16 @@
 .trip-stats dd {
   font-weight: bold;
 }
+.trip-panel .share-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+}
+.trip-panel .share-btn:disabled {
+  color: #888;
+  border-color: #bbb;
+  cursor: not-allowed;
+}
 .trip-hint {
   margin-top: 6px;
   font-size: 13px;
