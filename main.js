@@ -9,7 +9,7 @@ function error() {
     title: "Error",
     text: "Please allow location access",
     icon: "error",
-    button: "OK",
+    confirmButtonText: "OK",
   });
 }
 
