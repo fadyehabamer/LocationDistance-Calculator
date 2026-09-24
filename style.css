@@ -8,6 +8,77 @@
   width: 100%;
   height: 100vh;
 }
+.trip-panel {
+  position: absolute;
+  right: 10px;
+  bottom: 40px;
+  z-index: 2;
+  width: 260px;
+  max-width: calc(100% - 20px);
+  padding: 12px 14px;
+  background: #fff;
+  color: #222;
+  border-radius: 6px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+.trip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.trip-header h2 {
+  font-size: 16px;
+}
+.unit-toggle {
+  display: flex;
+  gap: 4px;
+}
+.trip-panel button {
+  padding: 4px 10px;
+  font-size: 14px;
+  color: #3887be;
+  background: #fff;
+  border: 1px solid #3887be;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.trip-panel button[aria-pressed="true"] {
+  color: #fff;
+  background: #3887be;
+}
+.trip-panel button:focus-visible {
+  outline: 3px solid #1d6fa5;
+  outline-offset: 2px;
+}
+.trip-stats div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+.trip-stats dt {
+  color: #555;
+}
+.trip-stats dd {
+  font-weight: bold;
+}
+.trip-panel .share-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+}
+.trip-panel .share-btn:disabled {
+  color: #888;
+  border-color: #bbb;
+  cursor: not-allowed;
+}
+.trip-hint {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #555;
+}
 .visually-hidden {
   position: absolute;
   width: 1px;

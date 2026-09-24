@@ -20,6 +20,28 @@
     <main>
         <h1 class="visually-hidden">Trip Distance Calculator</h1>
         <div id='map' role="region" aria-label="Interactive map with driving directions"></div>
+        <section class="trip-panel" aria-labelledby="trip-title">
+            <div class="trip-header">
+                <h2 id="trip-title">Trip summary</h2>
+                <div class="unit-toggle" role="group" aria-label="Distance unit">
+                    <button type="button" data-unit="km" aria-pressed="true">km</button>
+                    <button type="button" data-unit="mi" aria-pressed="false">mi</button>
+                </div>
+            </div>
+            <dl class="trip-stats" aria-live="polite">
+                <div>
+                    <dt>Distance</dt>
+                    <dd id="trip-distance">&ndash;</dd>
+                </div>
+                <div>
+                    <dt>Travel time<span id="trip-mode"></span></dt>
+                    <dd id="trip-duration">&ndash;</dd>
+                </div>
+            </dl>
+            <p class="trip-hint" id="trip-hint">Choose a starting place and a destination in the directions panel.</p>
+            <button type="button" id="share-btn" class="share-btn" disabled>Copy share link</button>
+            <p class="trip-hint" id="share-status" role="status"></p>
+        </section>
         <noscript>This app needs JavaScript enabled to display the map and calculate distances.</noscript>
     </main>
 
