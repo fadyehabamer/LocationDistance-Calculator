@@ -10,6 +10,16 @@ const DEFAULT_CENTER = [0, 20]; // [lng, lat]
 const DEFAULT_ZOOM = 1.5;
 const USER_ZOOM = 9;
 
+const UNIT_KEY = "distanceUnit";
+const KM_PER_MILE = 1.609344;
+
+let unit = readSavedUnit();
+let lastRoute = null;
+
+const distanceEl = document.getElementById("trip-distance");
+const tripHint = document.getElementById("trip-hint");
+const unitButtons = document.querySelectorAll(".unit-toggle button");
+
 // Render the map immediately so the app is usable even if location access is
 // denied, unavailable (e.g. non-HTTPS origin) or the permission prompt is ignored.
 const map = initializeMap(DEFAULT_CENTER, DEFAULT_ZOOM);
@@ -48,12 +58,53 @@ function initializeMap(center, zoom) {
   });
   map.addControl(new mapboxgl.NavigationControl());
   // display driving directions using the Mapbox Directions plugin
-  map.addControl(
-    new MapboxDirections({
-      accessToken: MAPBOX_ACCESS_TOKEN,
-    }),
-    "top-left"
-  );
+  const directions = new MapboxDirections({
+    accessToken: MAPBOX_ACCESS_TOKEN,
+    unit: unit === "mi" ? "imperial" : "metric",
+  });
+  map.addControl(directions, "top-left");
+
+  directions.on("route", (event) => {
+    lastRoute = event.route && event.route.length ? event.route[0] : null;
+    renderTrip();
+  });
+  directions.on("clear", () => {
+    lastRoute = null;
+    renderTrip();
+  });
 
   return map;
 }
+
+function readSavedUnit() {
+  try {
+    return localStorage.getItem(UNIT_KEY) === "mi" ? "mi" : "km";
+  } catch (e) {
+    return "km";
+  }
+}
+
+function formatDistance(meters) {
+  const km = meters / 1000;
+  const value = unit === "mi" ? km / KM_PER_MILE : km;
+  const digits = value < 10 ? 2 : value < 100 ? 1 : 0;
+  return `${value.toLocaleString(undefined, { maximumFractionDigits: digits })} ${unit}`;
+}
+
+function renderTrip() {
+  unitButtons.forEach((btn) => btn.setAttribute("aria-pressed", String(btn.dataset.unit === unit)));
+  const hasRoute = Boolean(lastRoute && typeof lastRoute.distance === "number");
+  distanceEl.textContent = hasRoute ? formatDistance(lastRoute.distance) : "\u2013";
+  tripHint.hidden = hasRoute;
+}
+
+function setUnit(newUnit) {
+  unit = newUnit;
+  try {
+    localStorage.setItem(UNIT_KEY, unit);
+  } catch (e) {}
+  renderTrip();
+}
+
+unitButtons.forEach((btn) => btn.addEventListener("click", () => setUnit(btn.dataset.unit)));
+renderTrip();
