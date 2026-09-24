@@ -1,3 +1,10 @@
+// Public Mapbox token (pk.*). It is visible to anyone who loads the page, so
+// restrict it to this site's URL(s) in the Mapbox dashboard
+// (https://account.mapbox.com/access-tokens/) and rotate it if it was ever
+// used without restrictions.
+const MAPBOX_ACCESS_TOKEN =
+  "pk.eyJ1IjoiZmFkeWVoYWJhbWVyIiwiYSI6ImNsYTJ5aTZxbTBpc20zcm8zaW9qMXY3ZXoifQ.E5qFMdxa2A2wvBQCxRpKCw";
+
 navigator.geolocation.getCurrentPosition(success, error);
 
 function success(position) {
@@ -14,8 +21,7 @@ function error() {
 }
 
 function intializeMap(coords) {
-  mapboxgl.accessToken =
-    "pk.eyJ1IjoiZmFkeWVoYWJhbWVyIiwiYSI6ImNsYTJ5aTZxbTBpc20zcm8zaW9qMXY3ZXoifQ.E5qFMdxa2A2wvBQCxRpKCw";
+  mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
   const map = new mapboxgl.Map({
     container: "map", // container ID
     style: "mapbox://styles/mapbox/streets-v11", // style URL
@@ -30,7 +36,7 @@ function intializeMap(coords) {
   // display driving directions using the Mapbox Directions plugin
   map.addControl(
     new MapboxDirections({
-      accessToken: "pk.eyJ1IjoiZmFkeWVoYWJhbWVyIiwiYSI6ImNsYTJ5aTZxbTBpc20zcm8zaW9qMXY3ZXoifQ.E5qFMdxa2A2wvBQCxRpKCw",
+      accessToken: MAPBOX_ACCESS_TOKEN,
     }),
     "top-left"
   );
