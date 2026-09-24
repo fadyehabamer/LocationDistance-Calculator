@@ -6,6 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trip Distance Calculator</title>
+    <meta name="description" content="Calculate driving distance and travel time between two locations on an interactive Mapbox map.">
+    <meta name="theme-color" content="#ffffff">
 
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css' rel='stylesheet' />
     <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css' type='text/css' />
@@ -15,7 +17,11 @@
 </head>
 
 <body>
-    <div id='map'></div>
+    <main>
+        <h1 class="visually-hidden">Trip Distance Calculator</h1>
+        <div id='map' role="region" aria-label="Interactive map with driving directions"></div>
+        <noscript>This app needs JavaScript enabled to display the map and calculate distances.</noscript>
+    </main>
 
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
